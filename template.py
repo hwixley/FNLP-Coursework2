@@ -51,17 +51,29 @@ class HMM:
         :return: The emission probability distribution and a list of the states
         :rtype: Tuple[ConditionalProbDist, list(str)]
         """
-        raise NotImplementedError('HMM.emission_model')
+        flat_data = sum(train_data, [])
+        #words = {}
+        #for el in flat_data:
+        #    if el[0] in words.keys():
+        #        words[el[0]] = words[el[0]] + 1
+        #    else:
+        #        words[el[0]] = 1
+        words = [(el[0].lower(), el[1]) for el in flat_data]
+        cfdist = ConditionalFreqDist(words)
+        self.emission_PD = ConditionalProbDist(cfdist, LidstoneProbDist, 0.001, cfdist.N()+1)
+        self.states = [el[1] for el in words]
+
+        #raise NotImplementedError('HMM.emission_model')
         # TODO prepare data
 
         # Don't forget to lowercase the observation otherwise it mismatches the test data
         # Do NOT add <s> or </s> to the input sentences
-        data = 'fixme'
+        #data = 'fixme'
 
         # TODO compute the emission model
-        emission_FD = 'fixme'
-        self.emission_PD = 'fixme'
-        self.states = 'fixme'
+        #emission_FD = 'fixme'
+        #self.emission_PD = 'fixme'
+        #self.states = 'fixme'
 
         return self.emission_PD, self.states
 
@@ -80,6 +92,9 @@ class HMM:
         :return: log base 2 of the estimated emission probability
         :rtype: float
         """
+        prob = self.emission_PD[state][word]
+        print(prob)
+
         raise NotImplementedError('HMM.elprob')
         return ... # fixme
 
