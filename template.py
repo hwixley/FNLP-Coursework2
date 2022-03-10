@@ -1,5 +1,7 @@
+import enum
 import nltk, inspect, sys, hashlib
 import math
+import numpy as np
 
 from nltk.corpus import brown
 
@@ -65,7 +67,7 @@ class HMM:
             states.append(w[1])
 
         self.emission_PD = ConditionalProbDist(emission_FD, LidstoneProbDist, 0.001, emission_FD.N()+1)
-        self.states = set(states)
+        self.states = list(set(states))
 
         return self.emission_PD, self.states
 
@@ -160,28 +162,30 @@ class HMM:
         :param number_of_observations: the number of observations
         :type number_of_observations: int
         """
-        print(observation)
+        #print(observation)
         state_counts = {}
         for s in self.states:
             state_counts[s] = state_counts.get(s,0) + 1
 
-        #raise NotImplementedError('HMM.initialise')
         # Initialise step 0 of viterbi, including
         #  transition from <s> to observation
         # use costs (- log-base-2 probabilities)
         # TODO
-        state_probs = {}
-        for state in set(self.states):
-            prior = state_counts[s]/len(self.states) #number_of_observations/len(self.train_data)
-            trans = self.transition_PD["<s>"].prob(state)
-            emis = self.emission_PD[observation].prob(state)
-            state_probs[state] = -math.log2(trans*emis) #-math.log2(prior*emis)
+        viterbi = []
+        #backpointer = [0]
 
-        self.viterbi = state_probs
+        for i, state in enumerate(self.states):
+            #prior = state_counts[s]/len(self.states) #number_of_observations/len(self.train_data)
+            trans = self.transition_PD["<s>"].prob(state)
+            emis = self.emission_PD[state].prob(observation)
+            viterbi.append([-math.log2(trans*emis)])
+            #backpointer.append(0)
+
+        self.viterbi = viterbi
 
         # Initialise step 0 of backpointer
         # TODO
-        self.backpointer = [0]*number_of_observations
+        self.backpointer = [(0,0)]
 
     # Q3
     # Access function for testing the viterbi data structure
@@ -199,8 +203,12 @@ class HMM:
         :return: The value (a cost) for state as of step
         :rtype: float
         """
-        #raise NotImplementedError('HMM.get_viterbi_value')
-        return self.viterbi[state] # fix me
+        print(step)
+        state_idx = list(self.states).index(state)
+        pos_step = step
+        if pos_step < 0:
+            pos_step += len(self.viterbi[state_idx])
+        return self.viterbi[state_idx][pos_step]
 
     # Q3
     # Access function for testing the backpointer data structure
@@ -218,8 +226,12 @@ class HMM:
         :return: The state name to go back to at step-1
         :rtype: str
         """
-        #raise NotImplementedError('HMM.get_backpointer_value')
-        return self.backpointer[state] # fix me
+        state_idx = list(self.states).index(state)
+        pos_step = step
+        if pos_step < 0:
+            pos_step += len(self.viterbi[state_idx])
+        return self.backpointer[state_idx][pos_step]
+
 
     # Q4a
     # Tag a new sentence using the trained model and already initialised data structures.
@@ -234,27 +246,57 @@ class HMM:
         :type observations: list(str)
         :return: List of tags corresponding to each word of the input
         """
-        #raise NotImplementedError('HMM.tag')
         tags = []
+        self.initialise(observations[0], len(observations))
 
+        #print("obs:")
         print(observations)
-        for t in observations: # fixme to iterate over steps
-            for s in set(self.states): # fixme to iterate over states
-                word = t.lower()
-                self.viterbi = s
-                #pass # fixme to update the viterbi and backpointer data structures
-                #  Use costs, not probabilities
+        #print(len(self.states))
+
+        last_state = "<s>"
+        for i, word in enumerate(["<s>"] + observations + ["</s>"]): # fixme to iterate over steps
+            max_state = -1
+            max_prob = 0
+            for j, s in enumerate(self.states): # fixme to iterate over states
+                #self.viterbi[j][i] = self.transition_PD[last_state].prob(s)#*self.emission_PD[s].prob(word)
+                #print(f"state: {s}")
+                #print(self.viterbi)
+
+                prob_s = self.viterbi[j][i]*self.transition_PD[last_state].prob(s)
+                self.viterbi[j] = self.viterbi[j] + [prob_s*self.emission_PD[s].prob(word)]
+                if max_state == -1 or (prob_s > max_prob):
+                    max_state = j
+                    max_prob = prob_s
+
+            self.backpointer.append((i, max_state))
+            #pass # fixme to update the viterbi and backpointer data structures
+            #  Use costs, not probabilities
 
         # TODO
         # Add a termination step with cost based solely on cost of transition to </s> , end of sentence.
+
 
         # TODO
         # Reconstruct the tag sequence using the backpointers.
         # Return the tag sequence corresponding to the best path as a list.
         # The order should match that of the words in the sentence.
-        tags = ... # fixme
+        print("bp:")
+        print(self.backpointer)
+        #rev_tags = [self.states[self.backpointer[-1]]]
+        #for i, word in enumerate(observations.reverse()):
+        #    max_state
+        #    max_prob = 0
+       #     for j, s in enumerate(self.states):
+       #         if self.viterbi[j][i] > max_prob:
+       #             max
 
-        return tags
+        for i in range(1, len(self.backpointer)+1):
+            idx = self.backpointer[-i][1]
+            tags = [self.states[idx]] + tags
+        #tags = ... # fixme
+        #print("tags")
+        print(tags)
+        return tags #tags.reverse()
 
     def tag_sentence(self, sentence):
         """
@@ -263,7 +305,7 @@ class HMM:
         :type sentence: list(str)
         :rtype: list(str)
         """
-        return []
+        return self.tag(sentence)
 
 
 
