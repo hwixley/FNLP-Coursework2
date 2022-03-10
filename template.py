@@ -52,29 +52,20 @@ class HMM:
         :return: The emission probability distribution and a list of the states
         :rtype: Tuple[ConditionalProbDist, list(str)]
         """
-        flat_data = sum(train_data, [])
-        #words = {}
-        #for el in flat_data:
-        #    if el[0] in words.keys():
-        #        words[el[0]] = words[el[0]] + 1
-        #    else:
-        #        words[el[0]] = 1
-        words = [(el[0].lower(), el[1]) for el in flat_data]
-        cfdist = ConditionalFreqDist(words)
-        self.emission_PD = ConditionalProbDist(cfdist, LidstoneProbDist, 0.001, cfdist.N()+1)
-        self.states = [el[1] for el in words]
-
-        #raise NotImplementedError('HMM.emission_model')
         # TODO prepare data
-
         # Don't forget to lowercase the observation otherwise it mismatches the test data
         # Do NOT add <s> or </s> to the input sentences
-        #data = 'fixme'
+        words = [(tup[0].lower(), tup[1]) for el in train_data for tup in el]
 
         # TODO compute the emission model
-        #emission_FD = 'fixme'
-        #self.emission_PD = 'fixme'
-        #self.states = 'fixme'
+        emission_FD = ConditionalFreqDist()
+        states = []
+        for w in words:
+            emission_FD[w[1]][w[0]] += 1
+            states.append(w[1])
+
+        self.emission_PD = ConditionalProbDist(emission_FD, LidstoneProbDist, 0.001, emission_FD.N()+1)
+        self.states = set(states)
 
         return self.emission_PD, self.states
 
@@ -93,10 +84,7 @@ class HMM:
         :return: log base 2 of the estimated emission probability
         :rtype: float
         """
-        prob = self.emission_PD[word].prob(state)
-        #print(prob)
-
-        #raise NotImplementedError('HMM.elprob')
+        prob = self.emission_PD[state].prob(word)
         return math.log2(prob)
 
 
@@ -114,29 +102,20 @@ class HMM:
         :return: The transition probability distribution
         :rtype: ConditionalProbDist
         """
-        #print(train_data[0:10])
-        sents = [["<s>"] + [tup[1] for tup in el] + ["</s>"] for el in train_data]
-        #print(sents)
-
-        cfdist = ConditionalFreqDist()
-        #self.states = [el[1] for el in words]
-
-        #raise NotImplementedError('HMM.transition_model')
         # TODO: prepare the data
-        #data = []
-
         # The data object should be an array of tuples of conditions and observations,
         # in our case the tuples will be of the form (tag_(i),tag_(i+1)).
         # DON'T FORGET TO ADD THE START SYMBOL </s> and the END SYMBOL </s>
-        for s in sents:
-            for i, c in enumerate(s):
-                if i < len(s)-1:
-                    cfdist[c][s[i+1]] += 1
+        sents = [[("<s>","<s>")] + el + [("</s>","</s>")] for el in train_data]
 
         # TODO compute the transition model
-        self.transition_PD = ConditionalProbDist(cfdist, LidstoneProbDist, 0.001, cfdist.N()+1)
-        #transition_FD = 'fixme'
-        #self.transition_PD = 'fixme'
+        transition_FD = ConditionalFreqDist()
+        for s in sents:
+            for i, t in enumerate(s):
+                if i < len(s)-1:
+                    transition_FD[t[1]][s[i][1]] += 1
+
+        self.transition_PD = ConditionalProbDist(transition_FD, LidstoneProbDist, 0.001, transition_FD.N()+1)
 
         return self.transition_PD
 
@@ -154,7 +133,6 @@ class HMM:
         :return: log base 2 of the estimated transition probability
         :rtype: float
         """
-        #raise NotImplementedError('HMM.tlprob')
         prob = self.transition_PD[state1].prob(state2)
         return math.log2(prob)
 
@@ -182,6 +160,7 @@ class HMM:
         :param number_of_observations: the number of observations
         :type number_of_observations: int
         """
+        print(observation)
         state_counts = {}
         for s in self.states:
             state_counts[s] = state_counts.get(s,0) + 1
@@ -194,11 +173,11 @@ class HMM:
         state_probs = {}
         for state in set(self.states):
             prior = state_counts[s]/len(self.states) #number_of_observations/len(self.train_data)
-            #trans = self.transition_PD["<s>"].prob(state)
+            trans = self.transition_PD["<s>"].prob(state)
             emis = self.emission_PD[observation].prob(state)
-            state_probs[state] = -math.log2(prior*emis)
+            state_probs[state] = -math.log2(trans*emis) #-math.log2(prior*emis)
 
-        self.viterbi = list(self.state_probs.values())
+        self.viterbi = state_probs
 
         # Initialise step 0 of backpointer
         # TODO
@@ -221,7 +200,7 @@ class HMM:
         :rtype: float
         """
         #raise NotImplementedError('HMM.get_viterbi_value')
-        return self.vi # fix me
+        return self.viterbi[state] # fix me
 
     # Q3
     # Access function for testing the backpointer data structure
@@ -239,8 +218,8 @@ class HMM:
         :return: The state name to go back to at step-1
         :rtype: str
         """
-        raise NotImplementedError('HMM.get_backpointer_value')
-        return ... # fix me
+        #raise NotImplementedError('HMM.get_backpointer_value')
+        return self.backpointer[state] # fix me
 
     # Q4a
     # Tag a new sentence using the trained model and already initialised data structures.
@@ -258,10 +237,11 @@ class HMM:
         #raise NotImplementedError('HMM.tag')
         tags = []
 
+        print(observations)
         for t in observations: # fixme to iterate over steps
             for s in set(self.states): # fixme to iterate over states
                 word = t.lower()
-                self.viterbi = 
+                self.viterbi = s
                 #pass # fixme to update the viterbi and backpointer data structures
                 #  Use costs, not probabilities
 
@@ -283,8 +263,7 @@ class HMM:
         :type sentence: list(str)
         :rtype: list(str)
         """
-        raise NotImplementedError("HMM.tag_sentence")
-        return ... # fixme
+        return []
 
 
 
@@ -457,7 +436,7 @@ def answers():
             type(model.states[0]) == str):
         print('model.states value (%s) must be a non-empty list of strings' % model.states, file=sys.stderr)
 
-    print('states: %s\n' % model.states)
+    #print('states: %s\n' % model.states)
 
     ######
     # Try the model, and test its accuracy [won't do anything useful
