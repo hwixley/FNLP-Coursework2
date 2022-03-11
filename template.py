@@ -2,8 +2,6 @@ from curses import keyname
 from curses.ascii import isalpha
 import enum
 import nltk, inspect, sys, hashlib
-import math
-import numpy as np
 
 from nltk.corpus import brown
 
@@ -70,6 +68,7 @@ class HMM:
 
         self.emission_PD = ConditionalProbDist(emission_FD, LidstoneProbDist, gamma=0.001, bins=emission_FD.N()+1)
         self.states = list(set(states))
+        #print(self.emission_PD["VERB"].prob("attack"))
 
         return self.emission_PD, self.states
 
@@ -88,8 +87,7 @@ class HMM:
         :return: log base 2 of the estimated emission probability
         :rtype: float
         """
-        prob = self.emission_PD[state].prob(word)
-        return math.log2(prob)
+        return self.emission_PD[state].logprob(word)
 
 
     # Q2
@@ -139,8 +137,7 @@ class HMM:
         :return: log base 2 of the estimated transition probability
         :rtype: float
         """
-        prob = self.transition_PD[state1].prob(state2)
-        return math.log2(prob)
+        return self.transition_PD[state1].logprob(state2)
 
     # Train the HMM
     def train(self):
@@ -179,17 +176,20 @@ class HMM:
         #backpointer = [0]
 
         max_state = ""
-        max_prob = 0
+        max_cost = 1e+10
         for state in self.states:
             #prior = state_counts[s]/len(self.states) #number_of_observations/len(self.train_data)
-            trans = self.transition_PD["<s>"].prob(state)
-            emis = self.emission_PD[state].prob(observation)
-            prob = trans*emis
-            if prob > max_prob:
+            trans = self.transition_PD["<s>"].logprob(state)
+            emis = self.emission_PD[state].logprob(observation)
+            cost = trans*emis
+            #print(state)
+            #print(prob)
+            #print()
+            if cost < max_cost:
                 max_state = state
-                max_prob = prob
+                max_cost = cost
 
-            viterbi[0][state] = -math.log2(prob)
+            viterbi[0][state] = cost
             #backpointer.append(0)
 
         self.viterbi = viterbi
@@ -258,136 +258,58 @@ class HMM:
         """
         tags = []
         self.initialise(observations[0], len(observations))
-        #print(self.viterbi)
-
 
         for step, word in enumerate(observations):
-            #print(word)
             self.viterbi[step+1] = {}
             self.backpointer.append({})
-            #print(step)
-            temp_bp = {}
-            #state_costs = np.zeros((len(self.states), len(self.states)))
-            #curr_state = self.backpointer[step][1]
-            #last_state_costs = [ for el in self.viterbi[step] for state in self.states]
-            #print(next_state)
 
-            #state_costs = {}
             for dest_state in self.states:
                 state_costs = {}
-                temp_bp[dest_state] = {}
 
                 for ori_state in self.states:
-                    state_costs[ori_state] = self.get_viterbi_value(ori_state, step)*self.transition_PD[ori_state].prob(dest_state)
+                    state_costs[ori_state] = self.get_viterbi_value(ori_state, step)*self.transition_PD[ori_state].logprob(dest_state)
 
                 max_cost_key = max(state_costs, key=state_costs.get)
                 max_cost = state_costs[max_cost_key]
 
-
-                self.viterbi[step+1][dest_state] = max_cost*self.emission_PD[dest_state].prob(word)
-                temp_bp[dest_state][step+1] = max_cost_key
+                self.viterbi[step+1][dest_state] = max_cost*self.emission_PD[dest_state].logprob(word)
                 self.backpointer[step+1][dest_state] = max_cost_key
-                #self.backpointer.append((word, max_state))
 
-        #step = step+1   
-        #self.viterbi[step+1] = {}
-        #state_costs = {}
-       # for state in self.states:
-            #print(self.transition_PD(state))
-        #    state_costs[state] = self.get_viterbi_value(state, step)*self.transition_PD[state].prob("</s>")
+            min_cost_key = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
+            tags.append(min_cost_key)
 
-        #max_cost_key = max(state_costs, key=state_costs.get)
-        #max_cost = state_costs[max_cost_key]
-        #tags = ["</s>", max_cost_key]
-        #for i in range(step):
-        #    #max_cost_key = max(self.viterbi[step-i], key=self.viterbi[step-i].get)
-         #   tag = self.backpointer[step-i][tags[-1]]
-
-         #   tags.append(tag)
-        
-        #print(self.backpointer)
-            max_state = ""
-            max_state_val = 0
-
-            for state in self.states:
-                val = self.viterbi[step+1][state]
-                if val > max_state_val:
-                    max_state_val = val
-                    max_state = state
-
-            self.backpointer[step+1][max_state] = temp_bp[max_state][step+1]
-            tags.append(max_state)
-            #################################
-
-            #max_dest_state = np.where(state_costs == np.max(state_costs))[0]
-
-            #self.viterbi
-            #print(max_dest_state)
-            #self.backpointer
-
-        #print("obs:")
-        #print(self.states)
-        #print(observations)
-        #print(len(self.states))
-        """
-        #last_state = "<s>"
-        for i, word in enumerate(observations + ["</s>"]): # fixme to iterate over steps
-            max_trans = (-1,-1)
-            max_prob = 0
-            for j, curr_state in enumerate(self.states): # fixme to iterate over states
-                #self.viterbi[j][i] = self.transition_PD[last_state].prob(s)#*self.emission_PD[s].prob(word)
-                #print(f"state: {s}")
-                for k, next_state in enumerate(self.states):
-                    #print(self.viterbi)
-                    #print(self.viterbi[j][i])
-                    #print(curr_state)
-                    #print(next_state)
-                    #print(self.transition_PD[curr_state].prob(next_state))
-                    #print(self.viterbi[j][i]*self.transition_PD[curr_state].prob(next_state))
-                    prob_s = self.viterbi[j][i]*-math.log2(self.transition_PD[curr_state].prob(next_state))
-                    #print(prob_s)
-                    #print(self.emission_PD[next_state].prob(word))
-                    #print(prob_s*self.emission_PD[next_state].prob(word))
-                    #print()
-                    self.viterbi[j] = self.viterbi[j] + [prob_s*-math.log2(self.emission_PD[next_state].prob(word))]
-                    if prob_s > max_prob:
-                        max_trans = (i, curr_state, next_state)
-                        max_prob = prob_s
-            #last_state = self.states[max_state]
-            #print(max_prob)
-            self.backpointer.append(max_trans)
-            #pass # fixme to update the viterbi and backpointer data structures
-            #  Use costs, not probabilities
-        """
         # TODO
         # Add a termination step with cost based solely on cost of transition to </s> , end of sentence.
+        #print(self.backpointer)
+        #print(self.viterbi.keys())
+        #print(step)
+        """
+        step = step+1   
+        self.viterbi[step+1] = {}
+        self.backpointer.append({})
+        state_costs = {}
+        for state in self.states:
+            #print(self.transition_PD(state))
+            state_costs[state] = self.get_viterbi_value(state, step)*self.transition_PD[state].logprob("</s>")
 
-
+        max_cost_key = max(state_costs, key=state_costs.get)
+        self.backpointer[step+1]["</s>"] = max_cost_key
+        
+        #for step in self.viterbi.keys():
+            #if step > 0:
+        #    self.viterbi[step] = {k: -math.log2(v) for k, v in self.viterbi[step].items()}
+        """
         # TODO
         # Reconstruct the tag sequence using the backpointers.
         # Return the tag sequence corresponding to the best path as a list.
         # The order should match that of the words in the sentence.
-        #print("bp:")
-        #print(self.backpointer[-1])
-        #for p in range(1, len(observations)+3):
-        #    step_p = self.backpointer[-p]
-        #    if p == 1 or p == len(observations)+3:
-        #        print(step_p)
-        #rev_tags = [self.states[self.backpointer[-1]]]
-        #for i, word in enumerate(observations.reverse()):
-        #    max_state
-        #    max_prob = 0
-       #     for j, s in enumerate(self.states):
-       #         if self.viterbi[j][i] > max_prob:
-       #             max
-
-
-        #for i in range(1, len(self.backpointer)+1):
-        #    idx = self.backpointer[-i][1]
-        #    tags = [self.states[idx]] + tags
-        #tags = ... # fixme
-        #print("tags")
-
+        """
+        tags = ["</s>"]
+        #print(step+1)
+        for stp in range(step+1,0,-1):
+            #print(stp)
+            tags = [self.backpointer[stp][tags[0]]] + tags
+        #print(tags)"""
         return tags
 
     def tag_sentence(self, sentence):
