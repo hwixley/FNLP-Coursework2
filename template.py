@@ -1,3 +1,4 @@
+from curses.ascii import isalpha
 import enum
 import nltk, inspect, sys, hashlib
 import math
@@ -57,16 +58,16 @@ class HMM:
         # TODO prepare data
         # Don't forget to lowercase the observation otherwise it mismatches the test data
         # Do NOT add <s> or </s> to the input sentences
-        words = [(tup[0].lower(), tup[1]) for el in train_data for tup in el]
+        tagged_words = [(tup[0].lower(), tup[1]) for el in train_data for tup in el]
 
         # TODO compute the emission model
         emission_FD = ConditionalFreqDist()
         states = []
-        for w in words:
-            emission_FD[w[1]][w[0]] += 1
-            states.append(w[1])
+        for tw in tagged_words:
+            emission_FD[tw[1]][tw[0]] += 1
+            states.append(tw[1])
 
-        self.emission_PD = ConditionalProbDist(emission_FD, LidstoneProbDist, 0.001, emission_FD.N()+1)
+        self.emission_PD = ConditionalProbDist(emission_FD, LidstoneProbDist, gamma=0.001, bins=emission_FD.N()+1)
         self.states = list(set(states))
 
         return self.emission_PD, self.states
@@ -108,16 +109,18 @@ class HMM:
         # The data object should be an array of tuples of conditions and observations,
         # in our case the tuples will be of the form (tag_(i),tag_(i+1)).
         # DON'T FORGET TO ADD THE START SYMBOL </s> and the END SYMBOL </s>
-        sents = [[("<s>","<s>")] + el + [("</s>","</s>")] for el in train_data]
+        #print(train_data[0:10])
+        tagged_sents = [[("<s>","<s>")] + el + [("</s>","</s>")] for el in train_data]
 
         # TODO compute the transition model
         transition_FD = ConditionalFreqDist()
-        for s in sents:
-            for i, t in enumerate(s):
-                if i < len(s)-1:
-                    transition_FD[t[1]][s[i][1]] += 1
+        for ts in tagged_sents:
+            for i, tagged_word in enumerate(ts):
+                if i < len(ts)-1:
+                    next_tagged_word = ts[i+1]
+                    transition_FD[tagged_word[1]][next_tagged_word[1]] += 1
 
-        self.transition_PD = ConditionalProbDist(transition_FD, LidstoneProbDist, 0.001, transition_FD.N()+1)
+        self.transition_PD = ConditionalProbDist(transition_FD, LidstoneProbDist, 0.001, transition_FD.N())
 
         return self.transition_PD
 
@@ -171,21 +174,27 @@ class HMM:
         #  transition from <s> to observation
         # use costs (- log-base-2 probabilities)
         # TODO
-        viterbi = []
+        viterbi = {}
         #backpointer = [0]
 
-        for i, state in enumerate(self.states):
+        max_state = ""
+        max_prob = 0
+        for state in self.states:
             #prior = state_counts[s]/len(self.states) #number_of_observations/len(self.train_data)
             trans = self.transition_PD["<s>"].prob(state)
             emis = self.emission_PD[state].prob(observation)
-            viterbi.append([-math.log2(trans*emis)])
+            prob = trans*emis
+            if prob > max_prob:
+                max_state = state
+                max_prob = prob
+            viterbi[state] = {0: -math.log2(prob)}
             #backpointer.append(0)
 
         self.viterbi = viterbi
 
         # Initialise step 0 of backpointer
         # TODO
-        self.backpointer = [(0,0)]
+        self.backpointer = {max_state: {0: "<s>"}}
 
     # Q3
     # Access function for testing the viterbi data structure
@@ -203,12 +212,10 @@ class HMM:
         :return: The value (a cost) for state as of step
         :rtype: float
         """
-        print(step)
-        state_idx = list(self.states).index(state)
         pos_step = step
         if pos_step < 0:
-            pos_step += len(self.viterbi[state_idx])
-        return self.viterbi[state_idx][pos_step]
+            pos_step += len(self.viterbi[state])
+        return self.viterbi[state][pos_step]
 
     # Q3
     # Access function for testing the backpointer data structure
@@ -226,11 +233,11 @@ class HMM:
         :return: The state name to go back to at step-1
         :rtype: str
         """
-        state_idx = list(self.states).index(state)
+        print(self.backpointer[state])
         pos_step = step
         if pos_step < 0:
-            pos_step += len(self.viterbi[state_idx])
-        return self.backpointer[state_idx][pos_step]
+            pos_step += len(self.viterbi[state])
+        return self.backpointer[state][pos_step]
 
 
     # Q4a
@@ -249,29 +256,78 @@ class HMM:
         tags = []
         self.initialise(observations[0], len(observations))
 
-        #print("obs:")
-        print(observations)
-        #print(len(self.states))
+        for step, word in enumerate(observations):
+            temp_bp = {}
+            #state_costs = np.zeros((len(self.states), len(self.states)))
+            for dest_state in self.states:
+                state_costs = {}
+                temp_bp[dest_state] = {}
 
-        last_state = "<s>"
-        for i, word in enumerate(["<s>"] + observations + ["</s>"]): # fixme to iterate over steps
-            max_state = -1
+                for ori_state in self.states:
+                    state_costs[ori_state] = self.get_viterbi_value(ori_state, step)*self.transition_PD[ori_state].prob(dest_state)
+
+                max_cost_key = max(state_costs, key=state_costs.get)
+                max_cost = state_costs[max_cost_key]
+
+                self.viterbi[dest_state][step+1] = max_cost*self.emission_PD[dest_state].prob(word)
+                temp_bp[dest_state][step+1] = max_cost_key
+                #self.backpointer.append((word, max_state))
+
+            max_state = ""
+            max_state_val = 0
+
+            for state in self.states:
+                val = self.viterbi[state][step+1]
+                if val > max_state_val:
+                    max_state_val = val
+                    max_state = state
+            
+            if not max_state in self.backpointer.keys():
+                self.backpointer[max_state] = {}
+            self.backpointer[max_state][step+1] = temp_bp[max_state][step+1]
+            tags.append(max_state)
+
+
+            #max_dest_state = np.where(state_costs == np.max(state_costs))[0]
+
+            #self.viterbi
+            #print(max_dest_state)
+            #self.backpointer
+
+        #print("obs:")
+        #print(self.states)
+        #print(observations)
+        #print(len(self.states))
+        """
+        #last_state = "<s>"
+        for i, word in enumerate(observations + ["</s>"]): # fixme to iterate over steps
+            max_trans = (-1,-1)
             max_prob = 0
-            for j, s in enumerate(self.states): # fixme to iterate over states
+            for j, curr_state in enumerate(self.states): # fixme to iterate over states
                 #self.viterbi[j][i] = self.transition_PD[last_state].prob(s)#*self.emission_PD[s].prob(word)
                 #print(f"state: {s}")
-                #print(self.viterbi)
-
-                prob_s = self.viterbi[j][i]*self.transition_PD[last_state].prob(s)
-                self.viterbi[j] = self.viterbi[j] + [prob_s*self.emission_PD[s].prob(word)]
-                if max_state == -1 or (prob_s > max_prob):
-                    max_state = j
-                    max_prob = prob_s
-
-            self.backpointer.append((i, max_state))
+                for k, next_state in enumerate(self.states):
+                    #print(self.viterbi)
+                    #print(self.viterbi[j][i])
+                    #print(curr_state)
+                    #print(next_state)
+                    #print(self.transition_PD[curr_state].prob(next_state))
+                    #print(self.viterbi[j][i]*self.transition_PD[curr_state].prob(next_state))
+                    prob_s = self.viterbi[j][i]*-math.log2(self.transition_PD[curr_state].prob(next_state))
+                    #print(prob_s)
+                    #print(self.emission_PD[next_state].prob(word))
+                    #print(prob_s*self.emission_PD[next_state].prob(word))
+                    #print()
+                    self.viterbi[j] = self.viterbi[j] + [prob_s*-math.log2(self.emission_PD[next_state].prob(word))]
+                    if prob_s > max_prob:
+                        max_trans = (i, curr_state, next_state)
+                        max_prob = prob_s
+            #last_state = self.states[max_state]
+            #print(max_prob)
+            self.backpointer.append(max_trans)
             #pass # fixme to update the viterbi and backpointer data structures
             #  Use costs, not probabilities
-
+        """
         # TODO
         # Add a termination step with cost based solely on cost of transition to </s> , end of sentence.
 
@@ -290,9 +346,10 @@ class HMM:
        #         if self.viterbi[j][i] > max_prob:
        #             max
 
-        for i in range(1, len(self.backpointer)+1):
-            idx = self.backpointer[-i][1]
-            tags = [self.states[idx]] + tags
+
+        #for i in range(1, len(self.backpointer)+1):
+        #    idx = self.backpointer[-i][1]
+        #    tags = [self.states[idx]] + tags
         #tags = ... # fixme
         #print("tags")
         print(tags)
