@@ -261,7 +261,8 @@ class HMM:
         #print(self.viterbi)
 
 
-        for step, word in enumerate(observations + ["</s>"]):
+        for step, word in enumerate(observations):
+            #print(word)
             self.viterbi[step+1] = {}
             self.backpointer.append({})
             #print(step)
@@ -282,12 +283,30 @@ class HMM:
                 max_cost_key = max(state_costs, key=state_costs.get)
                 max_cost = state_costs[max_cost_key]
 
+
                 self.viterbi[step+1][dest_state] = max_cost*self.emission_PD[dest_state].prob(word)
                 temp_bp[dest_state][step+1] = max_cost_key
                 self.backpointer[step+1][dest_state] = max_cost_key
                 #self.backpointer.append((word, max_state))
 
-            """max_state = ""
+        #step = step+1   
+        #self.viterbi[step+1] = {}
+        #state_costs = {}
+       # for state in self.states:
+            #print(self.transition_PD(state))
+        #    state_costs[state] = self.get_viterbi_value(state, step)*self.transition_PD[state].prob("</s>")
+
+        #max_cost_key = max(state_costs, key=state_costs.get)
+        #max_cost = state_costs[max_cost_key]
+        #tags = ["</s>", max_cost_key]
+        #for i in range(step):
+        #    #max_cost_key = max(self.viterbi[step-i], key=self.viterbi[step-i].get)
+         #   tag = self.backpointer[step-i][tags[-1]]
+
+         #   tags.append(tag)
+        
+        #print(self.backpointer)
+            max_state = ""
             max_state_val = 0
 
             for state in self.states:
@@ -296,10 +315,8 @@ class HMM:
                     max_state_val = val
                     max_state = state
 
-            if not max_state in self.backpointer.keys():
-                self.backpointer[max_state] = {}
-            self.backpointer[max_state][step+1] = temp_bp[max_state][step+1]
-            tags.append(max_state)"""
+            self.backpointer[step+1][max_state] = temp_bp[max_state][step+1]
+            tags.append(max_state)
             #################################
 
             #max_dest_state = np.where(state_costs == np.max(state_costs))[0]
@@ -351,9 +368,11 @@ class HMM:
         # Return the tag sequence corresponding to the best path as a list.
         # The order should match that of the words in the sentence.
         #print("bp:")
-        for p in range(1, len(observations)+3):
-            step_p = self.backpointer[-p]
-            print(step_p)
+        #print(self.backpointer[-1])
+        #for p in range(1, len(observations)+3):
+        #    step_p = self.backpointer[-p]
+        #    if p == 1 or p == len(observations)+3:
+        #        print(step_p)
         #rev_tags = [self.states[self.backpointer[-1]]]
         #for i, word in enumerate(observations.reverse()):
         #    max_state
@@ -368,8 +387,8 @@ class HMM:
         #    tags = [self.states[idx]] + tags
         #tags = ... # fixme
         #print("tags")
-        #print(tags)
-        return tags #tags.reverse()
+
+        return tags
 
     def tag_sentence(self, sentence):
         """
