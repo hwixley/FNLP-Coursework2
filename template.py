@@ -174,8 +174,8 @@ class HMM:
         viterbi = {i: {} for i in range(number_of_observations)}
         #backpointer = [0]
 
-        max_state = ""
-        max_cost = 1e+10
+        min_state = ""
+        min_cost = 1e+10
         for state in self.states:
             #prior = state_counts[s]/len(self.states) #number_of_observations/len(self.train_data)
             trans = -self.transition_PD["<s>"].logprob(state)
@@ -184,9 +184,9 @@ class HMM:
             #print(state)
             #print(prob)
             #print()
-            if cost < max_cost:
-                max_state = state
-                max_cost = cost
+            if cost < min_cost:
+                min_state = state
+                min_cost = cost
 
             viterbi[0][state] = cost
             #backpointer.append(0)
@@ -196,7 +196,7 @@ class HMM:
 
         # Initialise step 0 of backpointer
         # TODO
-        self.backpointer = [{max_state: "<s>"}]
+        self.backpointer = [{min_state: "<s>"}]
 
     # Q3
     # Access function for testing the viterbi data structure
