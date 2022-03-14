@@ -311,7 +311,7 @@ class HMM:
         min_cost_key = min(state_costs, key=state_costs.get)
         tags = [min_cost_key]
         #print(tags)
-        #print(self.viterbi.keys())
+        #print(self.viterbi.keys())[1:]
         bp = self.backpointer.copy()
         bp.reverse()
         #print(self.backpointer)
