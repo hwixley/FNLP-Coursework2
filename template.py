@@ -4,6 +4,7 @@ import enum
 from math import gamma
 import math
 from sre_parse import State
+from turtle import back
 import nltk, inspect, sys, hashlib
 
 from nltk.corpus import brown
@@ -172,7 +173,7 @@ class HMM:
         # use costs (- log-base-2 probabilities)
         # TODO
         viterbi = {i: {} for i in range(number_of_observations)}
-        #backpointer = [0]
+        backpointer = [{} for _ in range(number_of_observations)]
 
         min_state = ""
         min_cost = 1e+10
@@ -196,7 +197,8 @@ class HMM:
 
         # Initialise step 0 of backpointer
         # TODO
-        self.backpointer = [{min_state: "<s>"}]
+        backpointer[0][min_state] = "<s>"
+        self.backpointer = backpointer
 
     # Q3
     # Access function for testing the viterbi data structure
@@ -260,9 +262,6 @@ class HMM:
         self.initialise(observations[0], len(observations)+1)
 
         for step, word in enumerate(observations):
-            #self.viterbi[step+1] = {}
-            self.backpointer.append({})
-
             for dest_state in self.states:
                 state_costs = {}
 
