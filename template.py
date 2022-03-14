@@ -1,6 +1,7 @@
 from curses import keyname
 from curses.ascii import isalpha
 import enum
+from math import gamma
 import nltk, inspect, sys, hashlib
 
 from nltk.corpus import brown
@@ -66,12 +67,9 @@ class HMM:
             emission_FD[tw[1]][tw[0]] += 1
             states.append(tw[1])
 
-        estimator = lambda fdist, bins: LidstoneProbDist(fdist, 0.001, bins)
-        #print(estimator)
-        self.emission_PD = ConditionalProbDist(emission_FD, estimator, bins=emission_FD.N()+1)
-        #print(self.emission_PD)
+        estimator = lambda fdist: LidstoneProbDist(fdist, 0.001, bins=fdist.B()+1)
+        self.emission_PD = ConditionalProbDist(emission_FD, estimator)
         self.states = list(set(states))
-        #print(self.emission_PD["VERB"].prob("attack"))
 
         return self.emission_PD, self.states
 
