@@ -1,0 +1,293 @@
+The following line threw a NotImplementedError exception:
+t0 = hard_em(semi_supervised_labeled, semi_supervised_unlabeled, 0)
+-------
+The following line threw a NotImplementedError exception:
+tk = hard_em(semi_supervised_labeled, semi_supervised_unlabeled, 3)
+-------
+The following line threw a NameError exception: name 't0' is not defined:
+t0_acc = compute_acc(t0, test_data_universal, print_mistakes=False)
+-------
+The following line threw a NameError exception: name 'tk' is not defined:
+tk_acc = compute_acc(tk, test_data_universal, print_mistakes=False)
+-------
+The following line threw a NameError exception: name 't0_acc' is not defined:
+print('\nTagging accuracy of T_0: %.4f' % (t0_acc))
+-------
+The following line threw a NameError exception: name 'tk_acc' is not defined:
+print('\nTagging accuracy of T_k: %.4f' % (tk_acc))
+-------
+The following line threw a NotImplementedError exception: answer_question4b:
+bad_tags, good_tags, answer4b = answer_question4b()
+-------
+The following line threw a NameError exception: name 'bad_tags' is not defined:
+print(bad_tags)
+-------
+The following line threw a NameError exception: name 'good_tags' is not defined:
+print(good_tags)
+-------
+The following line threw a NameError exception: name 'answer4b' is not defined:
+print(answer4b)
+-------
+The following line threw a NotImplementedError exception: answer_question5b:
+answer5b = answer_question5b()
+-------
+The following line threw a NameError exception: name 'answer5b' is not defined:
+print(answer5b)
+-------
+The following line threw a NotImplementedError exception: answer_question6:
+answer6 = answer_question6()
+-------
+The following line threw a NameError exception: name 'answer6' is not defined:
+print(answer6)
+-------
+The following line threw a NotImplementedError exception: answer_question7:
+answer7 = answer_question7()
+-------
+The following line threw a NameError exception: name 'answer7' is not defined:
+print(answer7)
+-------
+Exception in answer dict value computation:
+    model.get_backpointer_value("DET",1) -> KeyError('DET')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in answer dict value computation:
+    bad_tags -> NameError("name 'bad_tags' is not defined")
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+Exception in answer dict value computation:
+    good_tags -> NameError("name 'good_tags' is not defined")
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+Exception in answer dict value computation:
+    answer4b -> NameError("name 'answer4b' is not defined")
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+Exception in answer dict value computation:
+    t0_acc -> NameError("name 't0_acc' is not defined")
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+Exception in answer dict value computation:
+    tk_acc -> NameError("name 'tk_acc' is not defined")
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+Exception in answer dict value computation:
+    answer5b -> NameError("name 'answer5b' is not defined")
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+Exception in answer dict value computation:
+    answer6 -> NameError("name 'answer6' is not defined")
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+Exception in answer dict value computation:
+    answer7 -> NameError("name 'answer7' is not defined")
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
+    return eval(expr,gdict)
+  File "<string>", line 1, in <module>
+Exception in computing viterbi/backpointer for . at step 1:
+KeyError('.')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for ADP at step 1:
+KeyError('ADP')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for ADV at step 1:
+KeyError('ADV')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for CONJ at step 1:
+KeyError('CONJ')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for DET at step 1:
+KeyError('DET')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for NOUN at step 1:
+KeyError('NOUN')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for NUM at step 1:
+KeyError('NUM')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for PRON at step 1:
+KeyError('PRON')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for PRT at step 1:
+KeyError('PRT')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for VERB at step 1:
+KeyError('VERB')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for X at step 1:
+KeyError('X')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for . at step 2:
+KeyError('.')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for ADJ at step 2:
+KeyError('ADJ')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for ADP at step 2:
+KeyError('ADP')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for ADV at step 2:
+KeyError('ADV')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for CONJ at step 2:
+KeyError('CONJ')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for NOUN at step 2:
+KeyError('NOUN')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for NUM at step 2:
+KeyError('NUM')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for PRON at step 2:
+KeyError('PRON')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for PRT at step 2:
+KeyError('PRT')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for VERB at step 2:
+KeyError('VERB')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for X at step 2:
+KeyError('X')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for . at step 3:
+KeyError('.')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for ADJ at step 3:
+KeyError('ADJ')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for ADP at step 3:
+KeyError('ADP')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for ADV at step 3:
+KeyError('ADV')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for CONJ at step 3:
+KeyError('CONJ')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for DET at step 3:
+KeyError('DET')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for NUM at step 3:
+KeyError('NUM')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for PRON at step 3:
+KeyError('PRON')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for PRT at step 3:
+KeyError('PRT')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for VERB at step 3:
+KeyError('VERB')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]
+Exception in computing viterbi/backpointer for X at step 3:
+KeyError('X')
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/adrive2.py", line 70, in a2answers
+    gdict["bp_matrix"][position-1][i] = model.get_backpointer_value(state, position)
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 245, in get_backpointer_value
+    return self.backpointer[pos_step][state]

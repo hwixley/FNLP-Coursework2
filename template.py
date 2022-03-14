@@ -173,7 +173,7 @@ class HMM:
         # use costs (- log-base-2 probabilities)
         # TODO
         viterbi = {i: {} for i in range(number_of_observations)}
-        #backpointer = [0]
+        backpointer = [{} for _ in range(number_of_observations)]
 
         min_state = ""
         min_cost = 1e+10
@@ -197,7 +197,8 @@ class HMM:
 
         # Initialise step 0 of backpointer
         # TODO
-        self.backpointer = [{min_state: "<s>"}]
+        backpointer[0][min_state] = "<s>"
+        self.backpointer = backpointer
 
     # Q3
     # Access function for testing the viterbi data structure
@@ -263,7 +264,6 @@ class HMM:
 
         for step, word in enumerate(observations):
             #self.viterbi[step+1] = {}
-            self.backpointer.append({})
 
             #lastlast_state = last_state
             #last_state = min(self.viterbi[step], key=self.viterbi[step].get)
@@ -273,6 +273,7 @@ class HMM:
             #print(last_state)
             #breakpoint()
 
+            state_costs = {}
             for dest_state in self.states:
                 """
                 state_costs = {}
@@ -283,11 +284,18 @@ class HMM:
                 min_cost_key = min(state_costs, key=state_costs.get)
                 min_cost = state_costs[min_cost_key]
                 """
-                self.viterbi[step+1][dest_state] = last_cost - self.emission_PD[dest_state].logprob(word)
+                state_costs[dest_state] = last_cost - self.transition_PD[last_state].logprob(dest_state)
                 #self.backpointer[step+1][dest_state] = last_state
 
-            min_state = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
+            #print(state_costs)
+            min_state = min(state_costs, key=state_costs.get)
+            for state in self.states:
+                self.viterbi[step+1][state] = state_costs[state] - self.emission_PD[dest_state].logprob(word)
+
             self.backpointer[step+1][min_state] = last_state
+            #print(min_state)
+            #print(self.viterbi[step+1])
+            #print(self.backpointer)
             #min_cost_key = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
             #tags.append(min_cost_key)
         #print(self.viterbi[2])
@@ -304,12 +312,13 @@ class HMM:
         tags = [min_cost_key]
         #print(tags)
         #print(self.viterbi.keys())
-        #bp = self.backpointer
-        #bp.reverse()
+        bp = self.backpointer.copy()
+        bp.reverse()
+        #print(self.backpointer)
         #print(bp)
         #breakpoint()
 
-        for dic in self.backpointer:
+        for dic in bp:
             key = list(dic.keys())[0]
             tags = [key] + tags
         #tags.append(min_cost_key)
