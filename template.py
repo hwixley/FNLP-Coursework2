@@ -66,7 +66,10 @@ class HMM:
             emission_FD[tw[1]][tw[0]] += 1
             states.append(tw[1])
 
-        self.emission_PD = ConditionalProbDist(emission_FD, LidstoneProbDist, gamma=0.001, bins=emission_FD.N()+1)
+        estimator = lambda fdist, bins: LidstoneProbDist(fdist, 0.001, bins)
+        #print(estimator)
+        self.emission_PD = ConditionalProbDist(emission_FD, estimator, bins=emission_FD.N()+1)
+        #print(self.emission_PD)
         self.states = list(set(states))
         #print(self.emission_PD["VERB"].prob("attack"))
 
