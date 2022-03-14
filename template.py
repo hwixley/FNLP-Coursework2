@@ -2,6 +2,8 @@ from curses import keyname
 from curses.ascii import isalpha
 import enum
 from math import gamma
+import math
+from sre_parse import State
 import nltk, inspect, sys, hashlib
 
 from nltk.corpus import brown
@@ -165,25 +167,20 @@ class HMM:
         :param number_of_observations: the number of observations
         :type number_of_observations: int
         """
-        #print(observation)
-        state_counts = {}
-        for s in self.states:
-            state_counts[s] = state_counts.get(s,0) + 1
-
         # Initialise step 0 of viterbi, including
         #  transition from <s> to observation
         # use costs (- log-base-2 probabilities)
         # TODO
-        viterbi = {0: {}}
+        viterbi = {i: {} for i in range(number_of_observations)}
         #backpointer = [0]
 
         max_state = ""
         max_cost = 1e+10
         for state in self.states:
             #prior = state_counts[s]/len(self.states) #number_of_observations/len(self.train_data)
-            trans = self.transition_PD["<s>"].logprob(state)
-            emis = self.emission_PD[state].logprob(observation)
-            cost = trans*emis
+            trans = -self.transition_PD["<s>"].logprob(state)
+            emis = -self.emission_PD[state].logprob(observation)
+            cost = trans + emis
             #print(state)
             #print(prob)
             #print()
@@ -195,6 +192,7 @@ class HMM:
             #backpointer.append(0)
 
         self.viterbi = viterbi
+        #print(viterbi[0]["DET"])
 
         # Initialise step 0 of backpointer
         # TODO
@@ -259,23 +257,24 @@ class HMM:
         :return: List of tags corresponding to each word of the input
         """
         tags = []
-        self.initialise(observations[0], len(observations))
+        self.initialise(observations[0], len(observations)+1)
 
         for step, word in enumerate(observations):
-            self.viterbi[step+1] = {}
+            #self.viterbi[step+1] = {}
             self.backpointer.append({})
 
             for dest_state in self.states:
                 state_costs = {}
 
                 for ori_state in self.states:
-                    state_costs[ori_state] = self.get_viterbi_value(ori_state, step)*self.transition_PD[ori_state].logprob(dest_state)
+                    state_costs[ori_state] = self.get_viterbi_value(ori_state, step) - self.transition_PD[ori_state].logprob(dest_state)
 
-                max_cost_key = max(state_costs, key=state_costs.get)
-                max_cost = state_costs[max_cost_key]
+                min_cost_key = min(state_costs, key=state_costs.get)
+                min_cost = state_costs[min_cost_key]
 
-                self.viterbi[step+1][dest_state] = max_cost*self.emission_PD[dest_state].logprob(word)
-                self.backpointer[step+1][dest_state] = max_cost_key
+
+                self.viterbi[step+1][dest_state] = min_cost - self.emission_PD[dest_state].logprob(word)
+                self.backpointer[step+1][dest_state] = min_cost_key
 
             min_cost_key = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
             tags.append(min_cost_key)
