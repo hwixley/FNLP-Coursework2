@@ -330,16 +330,18 @@ def answer_question4b():
     :rtype: list(tuple(str,str)), list(tuple(str,str)), str
     :return: incorrectly tagged sequence, correctly tagged sequence and your answer [max 280 chars]
     """
-    raise NotImplementedError('answer_question4b')
+    #raise NotImplementedError('answer_question4b')
 
     # One sentence, i.e. a list of word/tag pairs, in two versions
     #  1) As tagged by your HMM
     #  2) With wrong tags corrected by hand
-    tagged_sequence = 'fixme'
-    correct_sequence = 'fixme'
+    tagged_sequence = [('the', 'DET'), ('elf', 'ADJ'), ('was', 'VERB'), ('on', 'ADP'), ('the', 'DET'), ('shelf', 'ADJ')]
+    correct_sequence = [('the', 'DET'), ('elf', 'NOUN'), ('was', 'VERB'), ('on', 'ADP'), ('the', 'DET'), ('shelf', 'NOUN')]
     # Why do you think the tagger tagged this example incorrectly?
     answer = inspect.cleandoc("""\
-    fill me in""")
+    The tagger tagged this example incorrectly as \"elf\" and \"shelf\" both did not appear
+    in any sentences in the training set. This ultimately means the tagger sets the base
+    probabilities """)
 
     return tagged_sequence, correct_sequence, trim_and_warn("Q4a", 280, answer)
 
@@ -501,6 +503,10 @@ def answers():
     s = 'the cat in the hat came back'.split()
     ttags = model.tag_sentence(s)
     print("Tagged a trial sentence:\n  %s" % list(zip(s, ttags)))
+
+    s2 = "the elf was on the shelf".split()
+    tags2 = model.tag_sentence(s2)
+    print("Tagged a trial sentence:\n  %s" % list(zip(s2, tags2)))
 
     v_sample = model.get_viterbi_value('VERB', 5)
     if not (type(v_sample) == float and 0.0 <= v_sample):
