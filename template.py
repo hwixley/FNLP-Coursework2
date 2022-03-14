@@ -120,7 +120,8 @@ class HMM:
                     next_tagged_word = ts[i+1]
                     transition_FD[tagged_word[1]][next_tagged_word[1]] += 1
 
-        self.transition_PD = ConditionalProbDist(transition_FD, LidstoneProbDist, 0.001, transition_FD.N())
+        estimator = lambda fdist: LidstoneProbDist(fdist, gamma=0.001, bins=fdist.B())
+        self.transition_PD = ConditionalProbDist(transition_FD, estimator)
 
         return self.transition_PD
 
