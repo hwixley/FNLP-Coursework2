@@ -16,18 +16,6 @@ print('\nTagging accuracy of T_0: %.4f' % (t0_acc))
 The following line threw a NameError exception: name 'tk_acc' is not defined:
 print('\nTagging accuracy of T_k: %.4f' % (tk_acc))
 -------
-The following line threw a NotImplementedError exception: answer_question4b:
-bad_tags, good_tags, answer4b = answer_question4b()
--------
-The following line threw a NameError exception: name 'bad_tags' is not defined:
-print(bad_tags)
--------
-The following line threw a NameError exception: name 'good_tags' is not defined:
-print(good_tags)
--------
-The following line threw a NameError exception: name 'answer4b' is not defined:
-print(answer4b)
--------
 The following line threw a NotImplementedError exception: answer_question5b:
 answer5b = answer_question5b()
 -------
@@ -47,20 +35,13 @@ The following line threw a NameError exception: name 'answer7' is not defined:
 print(answer7)
 -------
 Exception in answer dict value computation:
-    bad_tags -> NameError("name 'bad_tags' is not defined")
+    min((model.get_viterbi_value(s,-1) for s in model.states)) if len(model.states)>0 else FAILED -> KeyError('CONJ')
   File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
     return eval(expr,gdict)
   File "<string>", line 1, in <module>
-Exception in answer dict value computation:
-    good_tags -> NameError("name 'good_tags' is not defined")
-  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
-    return eval(expr,gdict)
-  File "<string>", line 1, in <module>
-Exception in answer dict value computation:
-    answer4b -> NameError("name 'answer4b' is not defined")
-  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
-    return eval(expr,gdict)
-  File "<string>", line 1, in <module>
+  File "<string>", line 1, in <genexpr>
+  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 223, in get_viterbi_value
+    return self.viterbi[pos_step][state]
 Exception in answer dict value computation:
     t0_acc -> NameError("name 't0_acc' is not defined")
   File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval

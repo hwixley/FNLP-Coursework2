@@ -172,8 +172,8 @@ class HMM:
         #  transition from <s> to observation
         # use costs (- log-base-2 probabilities)
         # TODO
-        viterbi = {i: {} for i in range(number_of_observations)}
-        backpointer = [{} for _ in range(number_of_observations)]
+        viterbi = {i: {} for i in range(number_of_observations+3)}
+        backpointer = [{} for _ in range(number_of_observations+2)]
 
         min_state = ""
         min_cost = 1e+10
@@ -259,7 +259,8 @@ class HMM:
         :return: List of tags corresponding to each word of the input
         """
         tags = []
-        self.initialise(observations[0], len(observations)+1)
+        self.initialise(observations[0], len(observations))
+        last_state = list(self.backpointer[0].keys())[0]
 
         for step, word in enumerate(observations):
             for dest_state in self.states:
@@ -267,49 +268,45 @@ class HMM:
 
                 for ori_state in self.states:
                     state_costs[ori_state] = self.get_viterbi_value(ori_state, step) - self.transition_PD[ori_state].logprob(dest_state)
+                    if ori_state == last_state:
+                        self.backpointer[step+1][dest_state] = ori_state
 
                 min_cost_key = min(state_costs, key=state_costs.get)
                 min_cost = state_costs[min_cost_key]
 
-
                 self.viterbi[step+1][dest_state] = min_cost - self.emission_PD[dest_state].logprob(word)
                 self.backpointer[step+1][dest_state] = min_cost_key
 
-            min_cost_key = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
-            tags.append(min_cost_key)
+            last_state = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
 
         # TODO
         # Add a termination step with cost based solely on cost of transition to </s> , end of sentence.
-        #print(self.backpointer)
-        #print(self.viterbi.keys())
-        #print(step)
-        """
-        step = step+1   
-        self.viterbi[step+1] = {}
-        self.backpointer.append({})
         state_costs = {}
         for state in self.states:
-            #print(self.transition_PD(state))
-            state_costs[state] = self.get_viterbi_value(state, step)*self.transition_PD[state].logprob("</s>")
+            state_costs[state] = self.get_viterbi_value(state, step+1) - self.transition_PD[state].logprob("</s>")
+            
+        min_state = min(state_costs, key=state_costs.get)
+        self.viterbi[step+2]["</s>"] = state_costs[min_state]
+        self.backpointer[step+2]["</s>"] = min_state
 
-        max_cost_key = max(state_costs, key=state_costs.get)
-        self.backpointer[step+1]["</s>"] = max_cost_key
-        
-        #for step in self.viterbi.keys():
-            #if step > 0:
-        #    self.viterbi[step] = {k: -math.log2(v) for k, v in self.viterbi[step].items()}
-        """
         # TODO
         # Reconstruct the tag sequence using the backpointers.
         # Return the tag sequence corresponding to the best path as a list.
         # The order should match that of the words in the sentence.
-        """
         tags = ["</s>"]
-        #print(step+1)
-        for stp in range(step+1,0,-1):
-            #print(stp)
-            tags = [self.backpointer[stp][tags[0]]] + tags
-        #print(tags)"""
+        bp = self.backpointer[1:].copy()
+        bp.reverse()
+
+        for i, points in enumerate(bp):
+            step = len(observations) - i
+            next_state = points[tags[0]]
+            tags = [next_state] + tags
+
+            if len(tags) > len(observations):
+                break
+
+        tags = tags[:-1]
+
         return tags
 
     def tag_sentence(self, sentence):
