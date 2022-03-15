@@ -35,14 +35,6 @@ The following line threw a NameError exception: name 'answer7' is not defined:
 print(answer7)
 -------
 Exception in answer dict value computation:
-    min((model.get_viterbi_value(s,-1) for s in model.states)) if len(model.states)>0 else FAILED -> KeyError('CONJ')
-  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
-    return eval(expr,gdict)
-  File "<string>", line 1, in <module>
-  File "<string>", line 1, in <genexpr>
-  File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/template.py", line 223, in get_viterbi_value
-    return self.viterbi[pos_step][state]
-Exception in answer dict value computation:
     t0_acc -> NameError("name 't0_acc' is not defined")
   File "/home/hwixley/Documents/4th-Year/FNLP/cwk2/autodrive_embed.py", line 55, in safeEval
     return eval(expr,gdict)

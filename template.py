@@ -172,8 +172,8 @@ class HMM:
         #  transition from <s> to observation
         # use costs (- log-base-2 probabilities)
         # TODO
-        viterbi = {i: {} for i in range(number_of_observations+3)}
-        backpointer = [{} for _ in range(number_of_observations+2)]
+        viterbi = {i: {} for i in range(number_of_observations+1)}
+        backpointer = [{} for _ in range(number_of_observations+1)]
 
         min_state = ""
         min_cost = 1e+10
@@ -197,7 +197,7 @@ class HMM:
 
         # Initialise step 0 of backpointer
         # TODO
-        backpointer[0][min_state] = "<s>"
+        #backpointer[0][min_state] = "<s>"
         self.backpointer = backpointer
 
     # Q3
@@ -242,6 +242,11 @@ class HMM:
         pos_step = step
         if pos_step < 0:
             pos_step += len(self.backpointer)
+        #print(pos_step)
+        #print(len(self.backpointer))
+        #print(state)
+        #print(self.backpointer)
+        #print()
         return self.backpointer[pos_step][state]
 
 
@@ -260,7 +265,7 @@ class HMM:
         """
         tags = []
         self.initialise(observations[0], len(observations))
-        last_state = list(self.backpointer[0].keys())[0]
+        last_state = min(self.viterbi[0], key=self.viterbi[0].get)
 
         for step, word in enumerate(observations):
             for dest_state in self.states:
@@ -269,32 +274,50 @@ class HMM:
                 for ori_state in self.states:
                     state_costs[ori_state] = self.get_viterbi_value(ori_state, step) - self.transition_PD[ori_state].logprob(dest_state)
                     if ori_state == last_state:
-                        self.backpointer[step+1][dest_state] = ori_state
+                        self.backpointer[step][dest_state] = ori_state
 
                 min_cost_key = min(state_costs, key=state_costs.get)
                 min_cost = state_costs[min_cost_key]
 
                 self.viterbi[step+1][dest_state] = min_cost - self.emission_PD[dest_state].logprob(word)
-                self.backpointer[step+1][dest_state] = min_cost_key
+                self.backpointer[step][dest_state] = min_cost_key
 
             last_state = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
 
         # TODO
         # Add a termination step with cost based solely on cost of transition to </s> , end of sentence.
+        dest_state = "</s>"
+        state_costs = {}
+
+        for ori_state in self.states:
+            state_costs[ori_state] = self.get_viterbi_value(ori_state, step+1) - self.transition_PD[ori_state].logprob(dest_state)
+            #if ori_state == last_state:
+                #self.backpointer[step+1][dest_state] = ori_state
+
+        min_cost_key = min(state_costs, key=state_costs.get)
+        min_cost = state_costs[min_cost_key]
+
+        #self.viterbi[step+2][dest_state] = min_cost
+        self.backpointer[step+1][dest_state] = min_cost_key
+        #print(self.backpointer)
+        #breakpoint()
+        """
         state_costs = {}
         for state in self.states:
             state_costs[state] = self.get_viterbi_value(state, step+1) - self.transition_PD[state].logprob("</s>")
+            if state == last_state:
+                self.backpointer[step+2]["</s>"] = state
             
         min_state = min(state_costs, key=state_costs.get)
         self.viterbi[step+2]["</s>"] = state_costs[min_state]
         self.backpointer[step+2]["</s>"] = min_state
-
+        """
         # TODO
         # Reconstruct the tag sequence using the backpointers.
         # Return the tag sequence corresponding to the best path as a list.
         # The order should match that of the words in the sentence.
         tags = ["</s>"]
-        bp = self.backpointer[1:].copy()
+        bp = self.backpointer.copy()
         bp.reverse()
 
         for i, points in enumerate(bp):
@@ -306,6 +329,10 @@ class HMM:
                 break
 
         tags = tags[:-1]
+        #print(self.viterbi)
+        #print(self.backpointer)
+        #breakpoint()
+        #self.viterbi = {key: self.viterbi[key] for key in list(self.viterbi.keys()) if key > 0 and key < len(observations)}
 
         return tags
 
