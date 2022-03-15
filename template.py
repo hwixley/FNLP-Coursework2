@@ -271,6 +271,8 @@ class HMM:
         step = -1
         #print(observations)
         for step, word in enumerate(observations[1:]):
+            word = word.lower()
+            
             for dest_state in self.states:
                 state_costs = {}
 
@@ -350,6 +352,7 @@ class HMM:
         #print(self.backpointer)
         #breakpoint()
         #self.viterbi = {key: self.viterbi[key] for key in list(self.viterbi.keys()) if key > 0 and key < len(observations)}
+        print(list(zip(tags, observations)))
 
         return tags
 
