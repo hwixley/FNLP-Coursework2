@@ -3,6 +3,7 @@ from curses.ascii import isalpha
 import enum
 from math import gamma
 import math
+import itertools
 from sre_parse import State
 from tarfile import LENGTH_NAME
 import nltk, inspect, sys, hashlib
@@ -172,8 +173,8 @@ class HMM:
         #  transition from <s> to observation
         # use costs (- log-base-2 probabilities)
         # TODO
-        viterbi = {i: {} for i in range(number_of_observations)}
-        backpointer = [{} for _ in range(number_of_observations)]
+        viterbi = {}
+        backpointer = {}
 
         min_state = ""
         min_cost = 1e+10
@@ -189,7 +190,7 @@ class HMM:
                 min_state = state
                 min_cost = cost
 
-            viterbi[0][state] = cost
+            viterbi[(0,state)] = cost
             #backpointer.append(0)
 
         self.viterbi = viterbi
@@ -197,7 +198,7 @@ class HMM:
 
         # Initialise step 0 of backpointer
         # TODO
-        backpointer[0][min_state] = "<s>"
+        backpointer[0, min_state] = ["<s>"]
         self.backpointer = backpointer
 
     # Q3
@@ -220,7 +221,7 @@ class HMM:
         if pos_step < 0:
             pos_step += len(self.viterbi)
         #print(self.viterbi[pos_step])
-        return self.viterbi[pos_step][state]
+        return self.viterbi[(pos_step, state)]
 
     # Q3
     # Access function for testing the backpointer data structure
@@ -242,7 +243,7 @@ class HMM:
         pos_step = step
         if pos_step < 0:
             pos_step += len(self.backpointer)
-        return self.backpointer[pos_step][state]
+        return self.backpointer[pos_step, state]
 
 
     # Q4a
@@ -263,17 +264,18 @@ class HMM:
         last_state = "<s>"
 
         for step, word in enumerate(observations):
+            step = step+1
             #self.viterbi[step+1] = {}
 
             #lastlast_state = last_state
             #last_state = min(self.viterbi[step], key=self.viterbi[step].get)
-            last_state = list(self.backpointer[step].keys())[0]
-            last_cost = self.get_viterbi_value(last_state, step)
+            last_state = list(self.backpointer.keys())[0][1]
+            last_cost = self.get_viterbi_value(last_state, step-1)
             #self.backpointer[step][last_state][lastlast_state]
             #print(last_state)
             #breakpoint()
 
-            state_costs = {}
+            #state_costs = {}
             for dest_state in self.states:
                 """
                 state_costs = {}
@@ -284,15 +286,17 @@ class HMM:
                 min_cost_key = min(state_costs, key=state_costs.get)
                 min_cost = state_costs[min_cost_key]
                 """
-                state_costs[dest_state] = last_cost - self.transition_PD[last_state].logprob(dest_state)
+                self.viterbi[(step, dest_state)] = last_cost - self.transition_PD[last_state].logprob(dest_state)
+                self.backpointer[step, dest_state] = last_state
+                #state_costs[dest_state] = last_cost - self.transition_PD[last_state].logprob(dest_state)
                 #self.backpointer[step+1][dest_state] = last_state
 
             #print(state_costs)
-            min_state = min(state_costs, key=state_costs.get)
-            for state in self.states:
-                self.viterbi[step+1][state] = state_costs[state] - self.emission_PD[dest_state].logprob(word)
+            #min_state = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
+            #for state in self.states:
+            #    self.viterbi[step+1][state] = self.viterbi[step+1][state] - self.emission_PD[dest_state].logprob(word)
 
-            self.backpointer[step+1][min_state] = last_state
+            #self.backpointer[step+1][min_state] = last_state
             #print(min_state)
             #print(self.viterbi[step+1])
             #print(self.backpointer)
@@ -302,25 +306,42 @@ class HMM:
         #breakpoint()
         # TODO
         # Add a termination step with cost based solely on cost of transition to </s> , end of sentence.
-        print(self.backpointer)
-        #breakpoint()
+        #print(step)
+        #print(len(observations))
         state_costs = {}
         for ori_state in self.states:
-            state_costs[ori_state] = self.get_viterbi_value(ori_state, step) - self.transition_PD[ori_state].logprob(dest_state)
+            #print(self.get_viterbi_value(ori_state, step+1))
+            state_costs[ori_state] = self.get_viterbi_value(ori_state, step) - self.transition_PD[ori_state].logprob("</s>")
 
         min_cost_key = min(state_costs, key=state_costs.get)
         tags = [min_cost_key]
         #print(tags)
         #print(self.viterbi.keys())[1:]
-        bp = self.backpointer.copy()
-        bp.reverse()
+        #bp = self.backpointer.copy()
+        #bp.reverse()
         #print(self.backpointer)
         #print(bp)
         #breakpoint()
+        #print(tags)
+        #print(self.backpointer)
+        #print(len(self.viterbi))
+        #print(self.get_viterbi_value("NOUN", step+1))
+        #print(len(self.backpointer))
+        #print(step)
+        #breakpoint()
 
-        for dic in bp:
-            key = list(dic.keys())[0]
-            tags = [key] + tags
+        for step in range(len(observations)-1, 0, -1):
+            #real_step = len(observations)- step
+            #min_state = min(self.viterbi[real_step], key=self.viterbi[real_step].get)
+            #print(dic)
+            #print(key)
+            #key = dic[tags[0]]
+            #print(key)
+
+            tags = [self.backpointer[step, tags[0]]] + tags
+        #print(tags)
+        #print(self.backpointer)
+        #breakpoint()
         #tags.append(min_cost_key)
         """
         steps = list(self.viterbi.keys())
