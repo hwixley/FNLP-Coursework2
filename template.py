@@ -332,7 +332,7 @@ class HMM:
 
         for step in range(len(observations)-1, 0, -1):
             #real_step = len(observations)- step
-            #min_state = min(self.viterbi[real_step], key=self.viterbi[real_step].get)
+            min_state = min(self.viterbi[step], key=self.viterbi[real_step].get)
             #print(dic)
             #print(key)
             #key = dic[tags[0]]
