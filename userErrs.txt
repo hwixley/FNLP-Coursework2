@@ -1,10 +1,7 @@
-The following line threw a NotImplementedError exception:
-t0 = hard_em(semi_supervised_labeled, semi_supervised_unlabeled, 0)
--------
-The following line threw a NotImplementedError exception:
+The following line threw a ValueError exception: min() arg is an empty sequence:
 tk = hard_em(semi_supervised_labeled, semi_supervised_unlabeled, 3)
 -------
-The following line threw a NameError exception: name 't0' is not defined:
+The following line threw a ValueError exception: min() arg is an empty sequence:
 t0_acc = compute_acc(t0, test_data_universal, print_mistakes=False)
 -------
 The following line threw a NameError exception: name 'tk' is not defined:

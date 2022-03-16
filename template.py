@@ -121,6 +121,8 @@ class HMM:
             for i, tagged_word in enumerate(ts):
                 if i < len(ts)-1:
                     next_tagged_word = ts[i+1]
+                    #print(tagged_word)
+                    #print(next_tagged_word)
                     transition_FD[tagged_word[1]][next_tagged_word[1]] += 1
 
         estimator = lambda fdist: LidstoneProbDist(fdist, gamma=0.001, bins=fdist.B())
@@ -267,7 +269,7 @@ class HMM:
         """
         tags = []
         self.initialise(observations[0], len(observations))
-        last_state = list(self.backpointer[0].keys())[0]
+        #last_state = list(self.backpointer[0].keys())[0]
         step = -1
         #print(observations)
         for step, word in enumerate(observations[1:]):
@@ -287,7 +289,7 @@ class HMM:
                 self.viterbi[step+1][dest_state] = min_cost - self.emission_PD[dest_state].logprob(word)
                 self.backpointer[step+1][dest_state] = min_cost_key
 
-            last_state = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
+            #last_state = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
 
         # TODO
         # Add a termination step with cost based solely on cost of transition to </s> , end of sentence.
@@ -363,7 +365,8 @@ class HMM:
         :type sentence: list(str)
         :rtype: list(str)
         """
-        return self.tag(sentence)
+        lower_sentence = [el.lower() for el in sentence]
+        return self.tag(lower_sentence)
 
 
 
@@ -379,11 +382,11 @@ def answer_question4b():
     # One sentence, i.e. a list of word/tag pairs, in two versions
     #  1) As tagged by your HMM
     #  2) With wrong tags corrected by hand
-    tagged_sequence = [('the', 'DET'), ('elf', 'ADJ'), ('was', 'VERB'), ('on', 'ADP'), ('the', 'DET'), ('shelf', 'ADJ')]
+    tagged_sequence = [('the', 'DET'), ('elf', 'NOUN'), ('was', 'VERB'), ('on', 'ADP'), ('the', 'DET'), ('shelf', '.')]
     correct_sequence = [('the', 'DET'), ('elf', 'NOUN'), ('was', 'VERB'), ('on', 'ADP'), ('the', 'DET'), ('shelf', 'NOUN')]
     # Why do you think the tagger tagged this example incorrectly?
     answer = inspect.cleandoc("""\
-    The tagger tagged this example incorrectly as \"elf\" and \"shelf\" both did not appear
+    The tagger tagged this example incorrectly as \"shelf\" did not appear
     in any sentences in the training set. This ultimately means the tagger sets the base
     probabilities """)
 
@@ -403,8 +406,21 @@ def hard_em(labeled_data, unlabeled_data, k):
     :return: HMM model trained with hard EM.
     :rtype: HMM
     """
-    raise NotImplementedError()
-    return ... # fix me
+    hmm = HMM(labeled_data)
+    #print(labeled_data)
+
+    for _ in range(k):
+        labelled_U = []
+
+        for sample in unlabeled_data:
+            labelled_U.append(hmm.tag_sentence(sample))
+
+        hmm = HMM(labeled_data + labelled_U)
+
+        #labelled_U = hmms[iter].t
+
+    #raise NotImplementedError()
+    return hmm
 
 
 def answer_question5b():
