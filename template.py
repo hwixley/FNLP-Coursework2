@@ -61,7 +61,13 @@ class HMM:
         # TODO prepare data
         # Don't forget to lowercase the observation otherwise it mismatches the test data
         # Do NOT add <s> or </s> to the input sentences
-        tagged_words = [(tup[0].lower(), tup[1]) for el in train_data for tup in el]
+
+        tagged_words = [(word.lower(), state) for sentence in train_data for (word, state) in sentence]
+        #for sentence in train_data:
+            #print(sentence)
+        #    for (word, state) in sentence:
+        #        tagged_words.append((word.lower(), state))
+
 
         # TODO compute the emission model
         emission_FD = ConditionalFreqDist()
@@ -273,8 +279,6 @@ class HMM:
         step = -1
         #print(observations)
         for step, word in enumerate(observations[1:]):
-            word = word.lower()
-
             for dest_state in self.states:
                 state_costs = {}
 
@@ -303,6 +307,7 @@ class HMM:
             #if ori_state == last_state:
                 #self.backpointer[step+1][dest_state] = ori_state
 
+        #print(len(self.states))
         min_cost_key = min(state_costs, key=state_costs.get)
         min_cost = state_costs[min_cost_key]
 
@@ -365,7 +370,11 @@ class HMM:
         :type sentence: list(str)
         :rtype: list(str)
         """
+        if self.emission_PD == None and self.transition_PD == None:
+            self.train()
+
         lower_sentence = [el.lower() for el in sentence]
+        #print(list(zip(sentence, self.tag(lower_sentence))))
         return self.tag(lower_sentence)
 
 
@@ -407,13 +416,17 @@ def hard_em(labeled_data, unlabeled_data, k):
     :rtype: HMM
     """
     hmm = HMM(labeled_data)
+    #print(hmm.states)
+    #print(labeled_data)
     #print(labeled_data)
 
     for _ in range(k):
         labelled_U = []
 
         for sample in unlabeled_data:
-            labelled_U.append(hmm.tag_sentence(sample))
+            #print(sample)
+            tagged_sample = list(zip(sample, hmm.tag_sentence(sample)))
+            labelled_U.append(tagged_sample)
 
         hmm = HMM(labeled_data + labelled_U)
 
