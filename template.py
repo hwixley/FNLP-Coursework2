@@ -1,10 +1,3 @@
-from curses import keyname
-from curses.ascii import isalpha
-import enum
-from math import gamma
-import math
-from sre_parse import State
-from turtle import back
 import nltk, inspect, sys, hashlib
 
 from nltk.corpus import brown
@@ -455,13 +448,11 @@ def answer_question5b():
 
     return trim_and_warn("Q5b", 500, inspect.cleandoc("""\
         1) Additional unlabelled data would have helped as the word \"he\" did not appear
-        once in the labelled data, however, it appeared multiple times in the unlabelled
-        data.
-        2) Unlike T_0, T_k mislabels \"all\" as a VERB when it is actually a PRT. I think hard EM
-        hurt in that case as the unsupervised tagging must have incorrectly tagged the word \"all\"
-        resulting in the T_k model to perform worse when classifying that word than before.
-        Although the majority of cases T_k outperforms T_0 we most note this is the fallback of using
-        such an unsupervised technique for training.
+        in the labelled data, however, it appeared multiple times in the unlabelled data.
+        2) Unlike T_0, T_k mislabels \"all\" as a VERB when it is actually a PRT. Hard EM
+        hurts in that case as the unsupervised tagging must have incorrectly tagged the word
+        \"all\" resulting in the T_k model to perform worse when classifying that word than
+        before. This is the risk of using such an unsupervised technique for training.
         """))
 
 
@@ -477,10 +468,19 @@ def answer_question6():
     :rtype: str
     :return: your answer [max 500 chars]
     """
-    raise NotImplementedError('answer_question6')
+    #raise NotImplementedError('answer_question6')
 
-    return trim_and_warn("Q6", 500, inspect.cleandoc("""
-    your answer"""))
+    return trim_and_warn("Q6", 500, inspect.cleandoc("""\
+        You can build a POS tagger with smoothing so that it can still
+        handle words not included in the training set. Thus a lexical
+        word not included in the training set will still be naively
+        handled by the POS tagger model.
+        If optimized properly the smoothed model should perform better
+        than the original parser, however, we must note if the training
+        set misses too many samples found in the test set it can
+        result in oversmoothing and ultimately takes away too much
+        probability mass from seen events.
+    """))
 
 
 def answer_question7():
@@ -492,10 +492,11 @@ def answer_question7():
     :rtype: str
     :return: your answer [max 500 chars]
     """
-    raise NotImplementedError('answer_question7')
+    #raise NotImplementedError('answer_question7')
 
     return trim_and_warn("Q7", 500, inspect.cleandoc("""\
-    your answer"""))
+        
+    """))
 
 
 def compute_acc(hmm, test_data, print_mistakes):
@@ -510,32 +511,33 @@ def compute_acc(hmm, test_data, print_mistakes):
     :return: float
     """
     # TODO: modify this to print the first 10 sentences with at least one mistake if print_mistakes = True
+    if print_mistakes:
+        print()
+        print("First 10 model mistakes:")
+    
+    incorrect_sents = 0
+
     correct = 0
     incorrect = 0
 
-    incorrect_sents = 0
     for sentence in test_data:
         s = [word for (word, tag) in sentence]
         tags = hmm.tag_sentence(s)
 
-        #incorrect_sent = False
-        for ((word, gold), tag) in zip(sentence, tags):
+        incorrect_sent = False
+        for ((_, gold), tag) in zip(sentence, tags):
             if tag == gold:
                 correct += 1
             else:
-                if print_mistakes and incorrect < 20:
-                    print((word, gold, tag))
                 incorrect += 1
-                #incorrect_sent = True
+                incorrect_sent = True
 
-        #if incorrect_sent and print_mistakes and incorrect_sents < 10:
-        #        incorrect_sents += 1
-                #print(f"Correct: {sentence}")
-                #print()
-                #print(f"{incorrect_sents}) {list(zip(s, tags))}")
-                #print(sentence)
-                #print()
+        if incorrect_sent and print_mistakes and incorrect_sents < 10:
+                incorrect_sents += 1
+                print(f"{incorrect_sents}) {sentence}") #{list(zip(sentence, tags))}")
 
+    if print_mistakes:
+        print()
     return float(correct) / (correct + incorrect)
 
 
