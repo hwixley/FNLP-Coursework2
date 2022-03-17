@@ -451,9 +451,18 @@ def answer_question5b():
     :rtype: str
     :return: your answer [max 500 chars]
     """
-    raise NotImplementedError('answer_question5b')
+    #raise NotImplementedError('answer_question5b')
 
-    return trim_and_warn("Q5b", 500, inspect.cleandoc("""your answer"""))
+    return trim_and_warn("Q5b", 500, inspect.cleandoc("""\
+        1) Additional unlabelled data would have helped as the word \"he\" did not appear
+        once in the labelled data, however, it appeared multiple times in the unlabelled
+        data.
+        2) Unlike T_0, T_k mislabels \"all\" as a VERB when it is actually a PRT. I think hard EM
+        hurt in that case as the unsupervised tagging must have incorrectly tagged the word \"all\"
+        resulting in the T_k model to perform worse when classifying that word than before.
+        Although the majority of cases T_k outperforms T_0 we most note this is the fallback of using
+        such an unsupervised technique for training.
+        """))
 
 
 
@@ -503,15 +512,29 @@ def compute_acc(hmm, test_data, print_mistakes):
     # TODO: modify this to print the first 10 sentences with at least one mistake if print_mistakes = True
     correct = 0
     incorrect = 0
+
+    incorrect_sents = 0
     for sentence in test_data:
         s = [word for (word, tag) in sentence]
         tags = hmm.tag_sentence(s)
 
+        #incorrect_sent = False
         for ((word, gold), tag) in zip(sentence, tags):
             if tag == gold:
                 correct += 1
             else:
+                if print_mistakes and incorrect < 20:
+                    print((word, gold, tag))
                 incorrect += 1
+                #incorrect_sent = True
+
+        #if incorrect_sent and print_mistakes and incorrect_sents < 10:
+        #        incorrect_sents += 1
+                #print(f"Correct: {sentence}")
+                #print()
+                #print(f"{incorrect_sents}) {list(zip(s, tags))}")
+                #print(sentence)
+                #print()
 
     return float(correct) / (correct + incorrect)
 
@@ -605,9 +628,13 @@ def answers():
     t0 = hard_em(semi_supervised_labeled, semi_supervised_unlabeled, 0) # 0 iterations
     tk = hard_em(semi_supervised_labeled, semi_supervised_unlabeled, 3)
     print("done.")
+    print(sum([1 for sent in semi_supervised_labeled for (w,t) in sent if w.lower() == "he"]))
+    print(sum([1 for sent in semi_supervised_unlabeled for w in sent if w.lower() == "he"]))
+    
 
-    t0_acc = compute_acc(t0, test_data_universal, print_mistakes=False)
-    tk_acc = compute_acc(tk, test_data_universal, print_mistakes=False)
+    t0_acc = compute_acc(t0, test_data_universal, print_mistakes=True)
+    print()
+    tk_acc = compute_acc(tk, test_data_universal, print_mistakes=True)
     print('\nTagging accuracy of T_0: %.4f' % (t0_acc))
     print('\nTagging accuracy of T_k: %.4f' % (tk_acc))
     ########
