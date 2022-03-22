@@ -32,6 +32,8 @@ class HMM:
         self.states = []
         self.viterbi = []
         self.backpointer = []
+        self.train()
+
 
     # Q1
 
@@ -54,24 +56,20 @@ class HMM:
         # TODO prepare data
         # Don't forget to lowercase the observation otherwise it mismatches the test data
         # Do NOT add <s> or </s> to the input sentences
-
         tagged_words = [(word.lower(), state) for sentence in train_data for (word, state) in sentence]
-        #for sentence in train_data:
-            #print(sentence)
-        #    for (word, state) in sentence:
-        #        tagged_words.append((word.lower(), state))
-
 
         # TODO compute the emission model
         emission_FD = ConditionalFreqDist()
         states = []
-        for tw in tagged_words:
-            emission_FD[tw[1]][tw[0]] += 1
-            states.append(tw[1])
+        for (word, state) in tagged_words:
+            emission_FD[state][word] += 1
+            if not state in states:
+                states.append(state)
 
         estimator = lambda fdist: LidstoneProbDist(fdist, 0.001, bins=fdist.B()+1)
         self.emission_PD = ConditionalProbDist(emission_FD, estimator)
-        self.states = list(set(states))
+        self.states = states
+        #print(self.states)
 
         return self.emission_PD, self.states
 
@@ -111,18 +109,15 @@ class HMM:
         # The data object should be an array of tuples of conditions and observations,
         # in our case the tuples will be of the form (tag_(i),tag_(i+1)).
         # DON'T FORGET TO ADD THE START SYMBOL </s> and the END SYMBOL </s>
-        #print(train_data[0:10])
-        tagged_sents = [[("<s>","<s>")] + el + [("</s>","</s>")] for el in train_data]
+        tagged_sents = [["<s>"] + [state for (_, state) in el] + ["</s>"] for el in train_data]
 
         # TODO compute the transition model
         transition_FD = ConditionalFreqDist()
-        for ts in tagged_sents:
-            for i, tagged_word in enumerate(ts):
-                if i < len(ts)-1:
-                    next_tagged_word = ts[i+1]
-                    #print(tagged_word)
-                    #print(next_tagged_word)
-                    transition_FD[tagged_word[1]][next_tagged_word[1]] += 1
+        for sent in tagged_sents:
+            for i, state in enumerate(sent):
+                if i < len(sent)-1:
+                    next_state = sent[i+1]
+                    transition_FD[state][next_state] += 1
 
         estimator = lambda fdist: LidstoneProbDist(fdist, gamma=0.001, bins=fdist.B())
         self.transition_PD = ConditionalProbDist(transition_FD, estimator)
@@ -177,25 +172,17 @@ class HMM:
         backpointer = [{} for _ in range(number_of_observations)]
 
         min_state = ""
-        min_cost = 1e+10
+        min_cost = sys.maxsize
         for state in self.states:
-            #prior = state_counts[s]/len(self.states) #number_of_observations/len(self.train_data)
             trans = -self.transition_PD["<s>"].logprob(state)
-            #emis = -self.emission_PD[state].logprob(observation)
-            cost = trans #+ emis
-            #print(state)
-            #print(prob)
-            #print()
+            cost = trans
             if cost < min_cost:
                 min_state = state
                 min_cost = cost
 
             viterbi[0][state] = cost - self.emission_PD[state].logprob(observation)
-            #backpointer[0]
-            #backpointer.append(0)
 
         self.viterbi = viterbi
-        #print(viterbi[0]["DET"])
 
         # Initialise step 0 of backpointer
         # TODO
@@ -221,8 +208,6 @@ class HMM:
         pos_step = step
         if pos_step < 0:
             pos_step += len(self.viterbi)
-        #if not pos_step in self.viterbi.keys():
-        #    print(self.viterbi)
         return self.viterbi[pos_step][state]
 
     # Q3
@@ -241,15 +226,9 @@ class HMM:
         :return: The state name to go back to at step-1
         :rtype: str
         """
-        #print(self.backpointer[state])
         pos_step = step
         if pos_step < 0:
             pos_step += len(self.backpointer)
-        #print(pos_step)
-        #print(len(self.backpointer))
-        #print(state)
-        #print(self.backpointer)
-        #print()
         return self.backpointer[pos_step][state]
 
 
@@ -268,17 +247,14 @@ class HMM:
         """
         tags = []
         self.initialise(observations[0], len(observations))
-        #last_state = list(self.backpointer[0].keys())[0]
         step = -1
-        #print(observations)
+
         for step, word in enumerate(observations[1:]):
             for dest_state in self.states:
                 state_costs = {}
 
                 for ori_state in self.states:
                     state_costs[ori_state] = self.get_viterbi_value(ori_state, step) - self.transition_PD[ori_state].logprob(dest_state)
-                    #if ori_state == last_state:
-                    #    self.backpointer[step][dest_state] = ori_state
 
                 min_cost_key = min(state_costs, key=state_costs.get)
                 min_cost = state_costs[min_cost_key]
@@ -286,73 +262,29 @@ class HMM:
                 self.viterbi[step+1][dest_state] = min_cost - self.emission_PD[dest_state].logprob(word)
                 self.backpointer[step+1][dest_state] = min_cost_key
 
-            #last_state = min(self.viterbi[step+1], key=self.viterbi[step+1].get)
-
         # TODO
         # Add a termination step with cost based solely on cost of transition to </s> , end of sentence.
         dest_state = "</s>"
         state_costs = {}
-        #print("new")
-        #print(observations)
         for ori_state in self.states:
-            #print(step)
             state_costs[ori_state] = self.get_viterbi_value(ori_state, step+1) - self.transition_PD[ori_state].logprob(dest_state)
-            #if ori_state == last_state:
-                #self.backpointer[step+1][dest_state] = ori_state
 
-        #print(len(self.states))
         min_cost_key = min(state_costs, key=state_costs.get)
         min_cost = state_costs[min_cost_key]
 
-        #self.viterbi[step+2][dest_state] = min_cost
-        #self.backpointer[step+2][dest_state] = min_cost_key
-        #print(self.backpointer)
-        #breakpoint()
-
-        #print(self.viterbi[len(observations)-1])
-        #breakpoint()
-        """
-        state_costs = {}
-        for state in self.states:
-            state_costs[state] = self.get_viterbi_value(state, step+1) - self.transition_PD[state].logprob("</s>")
-            if state == last_state:
-                self.backpointer[step+2]["</s>"] = state
-            
-        min_state = min(state_costs, key=state_costs.get)
-        self.viterbi[step+2]["</s>"] = state_costs[min_state]
-        self.backpointer[step+2]["</s>"] = min_state
-        """
         # TODO
         # Reconstruct the tag sequence using the backpointers.
         # Return the tag sequence corresponding to the best path as a list.
         # The order should match that of the words in the sentence.
         tags = [min_cost_key]
-        #print(self.backpointer)
-        #breakpoint()
         bp = self.backpointer.copy()
-        #print(bp)
         bp.reverse()
         bp = bp[:-1]
-        #print(bp)
-        #breakpoint()
 
         for i, points in enumerate(bp):
-            #print(points)
-            #print(tags[0])
-            #print()
             step = len(observations) - i
             next_state = points[tags[0]]
             tags = [next_state] + tags
-
-            #if len(tags) == len(observations):
-            #    break
-        #print(tags)
-        #print(self.viterbi)
-        #print(len(self.backpointer))
-        #print(self.backpointer)
-        #breakpoint()
-        #self.viterbi = {key: self.viterbi[key] for key in list(self.viterbi.keys()) if key > 0 and key < len(observations)}
-        #print(list(zip(tags, observations)))
 
         return tags
 
@@ -366,9 +298,7 @@ class HMM:
         if self.emission_PD == None and self.transition_PD == None:
             self.train()
 
-        lower_sentence = [el.lower() for el in sentence]
-        #print(list(zip(sentence, self.tag(lower_sentence))))
-        return self.tag(lower_sentence)
+        return self.tag([el.lower() for el in sentence])
 
 
 
@@ -379,7 +309,6 @@ def answer_question4b():
     :rtype: list(tuple(str,str)), list(tuple(str,str)), str
     :return: incorrectly tagged sequence, correctly tagged sequence and your answer [max 280 chars]
     """
-    #raise NotImplementedError('answer_question4b')
 
     # One sentence, i.e. a list of word/tag pairs, in two versions
     #  1) As tagged by your HMM
@@ -409,23 +338,20 @@ def hard_em(labeled_data, unlabeled_data, k):
     :rtype: HMM
     """
     hmm = HMM(labeled_data)
-    #print(hmm.states)
-    #print(labeled_data)
-    #print(labeled_data)
+    hmm.train()
 
     for _ in range(k):
         labelled_U = []
 
         for sample in unlabeled_data:
-            #print(sample)
             tagged_sample = list(zip(sample, hmm.tag_sentence(sample)))
             labelled_U.append(tagged_sample)
 
         hmm = HMM(labeled_data + labelled_U)
+        hmm.train()
 
-        #labelled_U = hmms[iter].t
+        #hmm = HMM(labeled_data + labelled_U)
 
-    #raise NotImplementedError()
     return hmm
 
 
@@ -444,7 +370,6 @@ def answer_question5b():
     :rtype: str
     :return: your answer [max 500 chars]
     """
-    #raise NotImplementedError('answer_question5b')
 
     return trim_and_warn("Q5b", 500, inspect.cleandoc("""\
         1) Additional unlabelled data would have helped as the word \"he\" did not appear
@@ -468,7 +393,6 @@ def answer_question6():
     :rtype: str
     :return: your answer [max 500 chars]
     """
-    #raise NotImplementedError('answer_question6')
 
     return trim_and_warn("Q6", 500, inspect.cleandoc("""\
         You can build a POS tagger with smoothing so that it can still
@@ -492,7 +416,6 @@ def answer_question7():
     :rtype: str
     :return: your answer [max 500 chars]
     """
-    #raise NotImplementedError('answer_question7')
 
     return trim_and_warn("Q7", 500, inspect.cleandoc("""\
         
@@ -534,7 +457,7 @@ def compute_acc(hmm, test_data, print_mistakes):
 
         if incorrect_sent and print_mistakes and incorrect_sents < 10:
                 incorrect_sents += 1
-                print(f"{incorrect_sents}) {sentence}") #{list(zip(sentence, tags))}")
+                print(f"{incorrect_sents}) {sentence}")
 
     if print_mistakes:
         print()
@@ -592,7 +515,7 @@ def answers():
             type(model.states[0]) == str):
         print('model.states value (%s) must be a non-empty list of strings' % model.states, file=sys.stderr)
 
-    #print('states: %s\n' % model.states)
+    print('states: %s\n' % model.states)
 
     ######
     # Try the model, and test its accuracy [won't do anything useful
@@ -602,9 +525,9 @@ def answers():
     ttags = model.tag_sentence(s)
     print("Tagged a trial sentence:\n  %s" % list(zip(s, ttags)))
 
-    s2 = "the elf was on the shelf".split()
-    tags2 = model.tag_sentence(s2)
-    print("Tagged a trial sentence:\n  %s" % list(zip(s2, tags2)))
+    #s2 = "the elf was on the shelf".split()
+    #tags2 = model.tag_sentence(s2)
+    #print("Tagged a trial sentence:\n  %s" % list(zip(s2, tags2)))
 
     v_sample = model.get_viterbi_value('VERB', 5)
     if not (type(v_sample) == float and 0.0 <= v_sample):
@@ -630,13 +553,10 @@ def answers():
     t0 = hard_em(semi_supervised_labeled, semi_supervised_unlabeled, 0) # 0 iterations
     tk = hard_em(semi_supervised_labeled, semi_supervised_unlabeled, 3)
     print("done.")
-    print(sum([1 for sent in semi_supervised_labeled for (w,t) in sent if w.lower() == "he"]))
-    print(sum([1 for sent in semi_supervised_unlabeled for w in sent if w.lower() == "he"]))
-    
 
-    t0_acc = compute_acc(t0, test_data_universal, print_mistakes=True)
+    t0_acc = compute_acc(t0, test_data_universal, print_mistakes=False)
     print()
-    tk_acc = compute_acc(tk, test_data_universal, print_mistakes=True)
+    tk_acc = compute_acc(tk, test_data_universal, print_mistakes=False)
     print('\nTagging accuracy of T_0: %.4f' % (t0_acc))
     print('\nTagging accuracy of T_k: %.4f' % (tk_acc))
     ########

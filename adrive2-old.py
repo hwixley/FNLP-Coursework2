@@ -35,7 +35,7 @@ def a2answers(gdict,errlog):
   globals().update(gdict)
   errs=0
   (cerrs,ans)=carefulBind(
-    [('a1aa','model.states'),
+    [('a1a','sorted(model.states)'),
      ('a1b','len(model.emission_PD["VERB"].samples()) if type(model.emission_PD)==nltk.probability.ConditionalProbDist else FAILED'),
      ('a1c','-model.elprob("VERB","attack")'),
      ('a1d','model.emission_PD._probdist_factory.__class__.__name__ if model.emission_PD is not None else FAILED'),
