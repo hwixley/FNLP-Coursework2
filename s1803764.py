@@ -349,8 +349,6 @@ def hard_em(labeled_data, unlabeled_data, k):
         hmm = HMM(labeled_data + labelled_U)
         hmm.train()
 
-        #hmm = HMM(labeled_data + labelled_U)
-
     return hmm
 
 
