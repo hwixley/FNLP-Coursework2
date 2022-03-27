@@ -417,16 +417,14 @@ def answer_question7():
     """
 
     return trim_and_warn("Q7", 500, inspect.cleandoc("""\
-    Not all corpora use the same set of POS tags and thus the Brown tagset
-    was converted to the universal one to make our training set compareable
-    to samples from other corpora or contexts.
-    If this conversion was not done we can significant complications with
-    regards to equating equivalent tags from different tagsets.
-
-    The Brown tagset uses 31 unique tags in contrast to the universal tagset
-    which uses 12. This large amount of Brown tags would add a significant amount of
-    complexity to the model and without a sufficiently large dataset most likely
-    will result in poor generalisation.
+    Not all corpora use the same set of POS tags. The Brown tagset
+    was converted to the universal one to make our train set compareable
+    to samples from other corpora, otherwise we could have significant
+    complications when equating equivalent tags from different tagsets.
+    The Brown tagset uses 31 tags in contrast to the universal tagset
+    which uses 12. This increase in tags would add a notable amount of
+    complexity to the model and without sufficient data will most likely
+    result in poor generalisation.
     """))
 
 
